@@ -15,7 +15,7 @@ use Str;
 
 class UserController extends Controller
 {
-    public function registerUser(Request $request)
+    public function register(Request $request)
     {
         try {
             DB::beginTransaction();
@@ -23,7 +23,7 @@ class UserController extends Controller
                 'name'     => 'required',
                 'email'    => 'required',
                 'phone'    => 'required',
-                'password' => 'nullable',
+                'password' => 'required',
             ]);
 
             $userExist = User::select('id')->where('email', $request->email)->first();
@@ -35,7 +35,7 @@ class UserController extends Controller
 
             $validatePhone = User::select('id')->where('phone', $request->phone)->first();
 
-            if ($userExist) {
+            if ($validatePhone) {
                 Log::info('Tentativa de cadastro de usuário com telefone já existente:' . json_encode($request->all()));
                 return response()->json(['message' => 'O número de telefone fornecido já está sendo usado por outro usuário. Por favor, tente novamente com outro número de telefone.'], 400);
             }
@@ -62,7 +62,7 @@ class UserController extends Controller
         }
     }
 
-    public function updateUser(Request $request, $id)
+    public function update(Request $request, $id)
     {
         try {
             $user = auth()->user();
@@ -80,6 +80,33 @@ class UserController extends Controller
             Log::error('Erro ao alterar os dados do usuário: ' . json_encode($e->getMessage()));
 
             return response()->json(['message' => 'Erro ao atualizar dados.'], 400);
+        }
+    }
+
+    public function updatePassword()
+    {
+        try {
+            $dataPassword = request(['credentials', 'new_password']);
+
+            if (!auth()->validate($dataPassword['credentials'])) {
+                return response()->json(['error' => 'Senha atual incorreta'], 400);
+            }
+
+            $authUser = auth()->user();
+
+            $user = User::find($authUser->id);
+
+            $user->password = Hash::make($dataPassword['new_password']);
+
+            $user->save();
+
+            Log::info('Senha do usuário atualizada com sucesso. UserId: ' . $user->id);
+
+            return response()->json(['message' => 'Senha alterada com sucesso.'], 200);
+        } catch (\Exception $e) {
+            Log::error('Erro ao atualizar senha: ' . $e->getMessage());
+
+            return response()->json(['message' => 'Erro ao atualizar senha.'], 400);
         }
     }
 
@@ -168,33 +195,6 @@ class UserController extends Controller
             Log::info('Senha do usuário atualizada com sucesso. UserId: ' . $accessCode->user_id);
 
             return response()->json(['message' => 'Senha atualizada com sucesso.'], 200);
-        } catch (\Exception $e) {
-            Log::error('Erro ao atualizar senha: ' . $e->getMessage());
-
-            return response()->json(['message' => 'Erro ao atualizar senha.'], 400);
-        }
-    }
-
-    public function updatePassword()
-    {
-        try {
-            $dataPassword = request(['credentials', 'new_password']);
-
-            if (!auth()->validate($dataPassword['credentials'])) {
-                return response()->json(['error' => 'Senha atual incorreta'], 400);
-            }
-
-            $authUser = auth()->user();
-
-            $user = User::find($authUser->id);
-
-            $user->password = Hash::make($dataPassword['new_password']);
-
-            $user->save();
-
-            Log::info('Senha do usuário atualizada com sucesso. UserId: ' . $user->id);
-
-            return response()->json(['message' => 'Senha alterada com sucesso.'], 200);
         } catch (\Exception $e) {
             Log::error('Erro ao atualizar senha: ' . $e->getMessage());
 
