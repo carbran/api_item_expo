@@ -46,3 +46,5 @@ Route::group([
     Route::post('update-password-ac', 'App\Http\Controllers\UserController@updatePasswordWithAccessCode');
 
 });
+
+Route::post('version','App\Http\Controllers\UsefulController@version');
