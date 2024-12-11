@@ -62,20 +62,20 @@ class UserController extends Controller
         }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
         try {
             $user = auth()->user();
 
             foreach ($request->all() as $key => $value) {
-                if (!empty($value) && !in_array($key, ['name', 'email', 'password', 'phone'])) {
+                if (!empty($value)) {
                     $user->$key = $value;
                 }
             }
 
             $user->save();
 
-            return response()->json(['message' => 'Usuário alterado com sucesso.'], 200);
+            return response()->json(['message' => 'Usuário alterado com sucesso. ' . json_encode($user)], 200);
         } catch (\Exception $e) {
             Log::error('Erro ao alterar os dados do usuário: ' . json_encode($e->getMessage()));
 
@@ -171,7 +171,7 @@ class UserController extends Controller
             ]);
 
             $accessCode = AccessCode::where('access_code', $request->access_code)
-                ->where('expires_at', '>', now())
+                ->where('expires_in', '>', now())
                 ->first();
 
             if (!$accessCode || $accessCode->isExpired()) {
