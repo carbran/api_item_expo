@@ -67,6 +67,12 @@ class UserController extends Controller
         try {
             $user = auth()->user();
 
+            if (!$user) {
+                return response()->json(['message' => 'Usuário não autenticado.'], 401);
+            }
+
+            $validatedData = $request->only(['name', 'email', 'phone']);
+
             foreach ($request->all() as $key => $value) {
                 if (!empty($value)) {
                     $user->$key = $value;
@@ -89,12 +95,12 @@ class UserController extends Controller
             $dataPassword = request(['credentials', 'new_password']);
 
             if (!auth()->validate($dataPassword['credentials'])) {
-                return response()->json(['error' => 'Senha atual incorreta'], 400);
+                return response()->json(['message' => 'Senha atual incorreta'], 400);
             }
 
             $authUser = auth()->user();
 
-            $user = User::find($authUser->id);
+            $user = User::where('email', $authUser->email)->first();
 
             $user->password = Hash::make($dataPassword['new_password']);
 
@@ -104,7 +110,7 @@ class UserController extends Controller
 
             return response()->json(['message' => 'Senha alterada com sucesso.'], 200);
         } catch (\Exception $e) {
-            Log::error('Erro ao atualizar senha: ' . $e->getMessage());
+            Log::error('Erro ao atualizar senha: ' . json_encode($authUser) . ' ' . $e->getMessage());
 
             return response()->json(['message' => 'Erro ao atualizar senha.'], 400);
         }

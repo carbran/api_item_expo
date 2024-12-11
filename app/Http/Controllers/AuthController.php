@@ -27,7 +27,7 @@ class AuthController extends Controller
         $credentials = request(['email', 'password']);
 
         if (! $token = auth()->attempt($credentials)) {
-            return response()->json(['error' => 'Login/Senha inválido.'], 401);
+            return response()->json(['message' => 'Login/Senha inválido.'], 403);
         }
 
         return $this->respondWithToken($token);
@@ -77,7 +77,7 @@ class AuthController extends Controller
         return response()->json([
             'access_token' => $token,
             'token_type' => 'bearer',
-            'expires_in' => auth()->factory()->getTTL() * 60
+            'expires_in' => auth()->factory()->getTTL() * 3600
         ]);
     }
 }
