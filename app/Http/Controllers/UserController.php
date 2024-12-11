@@ -110,7 +110,7 @@ class UserController extends Controller
         }
     }
 
-    public function getAccessCode($request)
+    public function getAccessCode(Request $request)
     {
         try {
             $request->validate([
@@ -125,7 +125,7 @@ class UserController extends Controller
             }
 
             $temporaryAccessCode = AccessCode::where('user_id', $user->id)
-                ->where('expiration_time', '>', now())
+                ->where('expires_in', '>', now())
                 ->first();
 
             if ($temporaryAccessCode && !$temporaryAccessCode->isExpired()) {
@@ -136,17 +136,17 @@ class UserController extends Controller
             $accessCode     = Str::random(6);
             $expirationTime = 2;
             $expiration     = now()->addMinutes($expirationTime);
-
+            // dd($expiration);
             if ($temporaryAccessCode) {
                 $temporaryAccessCode->update([
                     'access_code' => $accessCode,
-                    'expires_at'  => $expiration,
+                    'expires_in'  => $expiration,
                 ]);
             } else {
                 $temporaryAccessCode = AccessCode::create([
                     'user_id'     => $user->id,
                     'access_code' => $accessCode,
-                    'expires_at'  => $expiration,
+                    'expires_in'  => $expiration,
                 ]);
             }
 
@@ -156,7 +156,7 @@ class UserController extends Controller
 
             return response()->json(['message' => 'Código de acesso enviado com sucesso.'], 200);
         } catch (\Exception $e) {
-            Log::error('Erro ao enviar código de acesso: ' . $e->getMessage());
+            Log::error('Erro ao enviar código de acesso: ' . $e->__tostring() . ' ' . $e->getMessage());
 
             return response()->json(['message' => 'Erro ao enviar código de acesso.'], 400);
         }

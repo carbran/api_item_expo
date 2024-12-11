@@ -18,7 +18,11 @@ class AccessCode extends Model
         'id',
         'user_id',
         'access_code',
-        'expires_at',
+        'expires_in',
+    ];
+
+    protected $casts = [
+        'expires_in' => 'datetime',
     ];
 
     public function user()
@@ -28,6 +32,6 @@ class AccessCode extends Model
 
     public function isExpired()
     {
-        return now()->greaterThan($this->expires_at);
+        return now()->greaterThan($this->expires_in);
     }
 }

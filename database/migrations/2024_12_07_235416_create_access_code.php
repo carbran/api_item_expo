@@ -14,8 +14,8 @@ return new class extends Migration
         Schema::create('access_code', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('restrict');
-            $table->string('acess_code');
-            $table->dateTime('expires_at');
+            $table->string('access_code');
+            $table->dateTime('expires_in');
             $table->timestamps();
         });
     }
