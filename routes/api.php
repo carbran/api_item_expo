@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\CollectionController;
+use App\Http\Controllers\ItemController;
+use App\Http\Controllers\UsefulController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -25,10 +31,10 @@ Route::group([
 
 ], function ($router) {
 
-    Route::post('login', 'App\Http\Controllers\AuthController@login');
-    Route::post('logout', 'App\Http\Controllers\AuthController@logout');
-    Route::post('refresh', 'App\Http\Controllers\AuthController@refresh');
-    Route::post('me', 'App\Http\Controllers\AuthController@me');
+    Route::post('login', [AuthController::class, 'login']);
+    Route::post('logout', [AuthController::class, 'logout']);
+    Route::post('refresh', [AuthController::class, 'refresh']);
+    Route::post('me', [AuthController::class, 'me']);
 
 });
 
@@ -39,12 +45,25 @@ Route::group([
 
 ], function ($router) {
 
-    Route::post('register', 'App\Http\Controllers\UserController@register');
-    Route::post('update', 'App\Http\Controllers\UserController@update');
-    Route::post('update-password', 'App\Http\Controllers\UserController@updatePassword');
-    Route::post('get-access-code', 'App\Http\Controllers\UserController@getAccessCode');
-    Route::post('update-password-ac', 'App\Http\Controllers\UserController@updatePasswordWithAccessCode');
+    Route::post('register', [UserController::class, 'register']);
+    Route::post('update', [UserController::class, 'update']);
+    Route::post('update-password', [UserController::class, 'updatePassword']);
+    Route::post('get-access-code', [UserController::class, 'getAccessCode']);
+    Route::post('update-password-ac', [UserController::class, 'updatePasswordWithAccessCode']);
 
 });
 
-Route::post('version','App\Http\Controllers\UsefulController@version');
+Route::post('version', [UsefulController::class, 'version']);
+
+Route::middleware(['api', 'jwt.auth'])->group(function () {
+    Route::apiResource('collections', CollectionController::class);
+});
+
+Route::middleware(['api', 'jwt.auth'])->group(function () {
+    Route::apiResource('items', ItemController::class);
+});
+
+Route::middleware(['api', 'jwt.auth'])->group(function () {
+    Route::apiResource('categories', CategoryController::class);
+});
+
