@@ -16,7 +16,14 @@ class ItemController extends Controller
     public function index()
     {
         try {
-            return response()->json(Item::with('collection')->get());
+
+            $items = Item::with('collection')->get();
+
+            if ($items->isEmpty()) {
+                return response()->json([]);
+            }
+
+            return response()->json($items);
 
         } catch (\Exception $e) {
             Log::info('Erro ao consultar as coleções: ' . json_encode($e->getMessage()));
@@ -86,7 +93,11 @@ class ItemController extends Controller
     public function show(string $id)
     {
         try {
-            $item = Item::with('collection', 'itemPicture')->findOrFail($id);
+            $item = Item::with('collection', 'itemPicture')->find($id);
+
+            if ($item->isEmpty()) {
+                return response()->json([]);
+            }
 
             return response()->json($item);
 
@@ -172,5 +183,28 @@ class ItemController extends Controller
             Log::info('Erro ao apagar a item: ' . json_encode($e->getMessage()));
             return response()->json(['message' => 'Ocorreu um erro ao apagar a item.'], 400);
         }
+    }
+
+    public function getItemWithCollection(Request $request)
+    {
+        $request->validate([
+            'collection_id' => 'required|exists:collection,id',
+        ]);
+
+        try {
+            $items = Item::with('pictures')
+                ->where('collection_id', $request->collection_id)
+                ->get();
+
+            if ($items->isEmpty()) {
+                return response()->json([]);
+            }
+
+            return response()->json($items);
+        } catch (\Exception $e) {
+            Log::error('Erro ao buscar itens da coleção: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao buscar itens da coleção.'], 500);
+        }
+
     }
 }

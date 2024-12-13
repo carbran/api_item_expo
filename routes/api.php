@@ -67,3 +67,13 @@ Route::middleware(['api', 'jwt.auth'])->group(function () {
     Route::apiResource('categories', CategoryController::class);
 });
 
+Route::group([
+
+    'middleware' => 'api',
+    'prefix'     => 'items',
+
+], function ($router) {
+
+    Route::post('/withCollectionId', [ItemController::class, 'getItemWithCollection']);
+
+});

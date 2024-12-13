@@ -37,4 +37,9 @@ class Item extends Model
     {
         return $this->belongsTo(Collection::class, 'collection_id');
     }
+
+    public function pictures()
+{
+    return $this->hasMany(ItemPicture::class, 'item_id');
+}
 }

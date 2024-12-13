@@ -15,7 +15,15 @@ class CollectionController extends Controller
     public function index()
     {
         try {
-            return response()->json(Collection::with('user')->get());
+            $user = auth()->user();
+
+            $collections = Collection::where("user_id", $user->id)->get();
+
+            if ($collections->isEmpty()) {
+                return response()->json([]);
+            }
+
+            return response()->json($collections);
 
         } catch (\Exception $e) {
             Log::info('Erro ao consultar as coleções: ' . json_encode($e->getMessage()));
@@ -31,10 +39,10 @@ class CollectionController extends Controller
         try {
             DB::beginTransaction();
             $request->validate([
-                'name'         => 'required|string|max:255',
-                'user_id'      => 'required|exists:users,id',
-                'categories'   => 'required|array|min:1',
-                'categories.*' => 'exists:categories,id',
+                'name'           => 'required|string|max:255',
+                'user_id'        => 'required|exists:users,id',
+                'categories'     => 'required|array|min:1',
+                'categories.*.0' => 'exists:category,id',
             ]);
 
             $collection = Collection::create([
@@ -42,7 +50,11 @@ class CollectionController extends Controller
                 'user_id' => $request->user_id,
             ]);
 
-            $collection->categories()->attach($request->categories);
+            $categoryIds = collect($request->input('categories'))
+                ->pluck('id') // Extrai apenas os IDs das categorias
+                ->toArray();
+
+            $collection->categories()->sync($categoryIds);
 
             DB::commit();
 
@@ -60,7 +72,7 @@ class CollectionController extends Controller
      */
     public function show(string $id)
     {
-        $collection = Collection::with('user')->find($id);
+        $collection = Collection::with('user', 'categories')->find($id);
 
         if (!$collection) {
             return response()->json(['message' => 'Coleção não encontrada'], 404);
@@ -76,10 +88,13 @@ class CollectionController extends Controller
     {
         try {
             DB::beginTransaction();
+
+            $categoryIds = collect($request->categories)->pluck('id')->toArray();
+
             $request->validate([
-                'name'         => 'sometimes|required|string|max:255',
-                'categories'   => 'required|array|min:1',
-                'categories.*' => 'exists:categories,id',
+                'name'            => 'sometimes|required|string|max:255',
+                'categories'      => 'required|array|min:1',
+                'categories.*.id' => 'exists:category,id',
             ]);
 
             $collection = Collection::find($id);
@@ -92,7 +107,7 @@ class CollectionController extends Controller
                 'name' => $request->name,
             ]);
 
-            $collection->categories()->sync($request->categories);
+            $collection->categories()->sync($categoryIds);
 
             DB::commit();
 
