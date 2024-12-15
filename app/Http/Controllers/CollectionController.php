@@ -145,4 +145,28 @@ class CollectionController extends Controller
             return response()->json(['message' => 'Ocorreu um erro ao apagar a coleção.'], 400);
         }
     }
+
+    public function getFirstItemImage(string $collectionId)
+    {
+        try {
+            $collection = Collection::with(['items' => function ($query) {
+                $query->with('pictures')->orderBy('id')->limit(1);
+            }])->find($collectionId);
+
+            if (!$collection) {
+                return response()->json(['message' => 'Coleção não encontrada.'], 404);
+            }
+
+            $firstItem = $collection->items->first();
+
+            $imageData = $firstItem ? $firstItem->pictures->first()->image_data : null;
+
+            $imageData = $firstItem->pictures->first()->image_data;
+
+            return response()->json(['image_data' => $imageData], 200);
+        } catch (\Exception $e) {
+            Log::error('Erro ao obter imagem do primeiro item: ' . $e->getMessage());
+            return response()->json(['message' => 'Erro ao processar a requisição.'], 500);
+        }
+    }
 }

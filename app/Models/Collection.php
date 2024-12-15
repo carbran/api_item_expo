@@ -28,4 +28,9 @@ class Collection extends Model
     {
         return $this->belongsToMany(Category::class, 'collection_category', 'collection_id', 'category_id');
     }
+
+    public function items()
+    {
+        return $this->hasMany(Item::class);
+    }
 }

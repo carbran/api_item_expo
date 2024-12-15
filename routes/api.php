@@ -59,12 +59,17 @@ Route::middleware(['api', 'jwt.auth'])->group(function () {
     Route::apiResource('collections', CollectionController::class);
 });
 
-Route::middleware(['api', 'jwt.auth'])->group(function () {
-    Route::apiResource('items', ItemController::class);
+Route::group([
+    'middleware' => 'api',
+    'prefix'     => 'collections',
+], function ($router) {
+
+    Route::get('/first-item-image/{id}', [CollectionController::class, 'getFirstItemImage']);
+
 });
 
 Route::middleware(['api', 'jwt.auth'])->group(function () {
-    Route::apiResource('categories', CategoryController::class);
+    Route::apiResource('items', ItemController::class);
 });
 
 Route::group([
@@ -76,4 +81,8 @@ Route::group([
 
     Route::post('/withCollectionId', [ItemController::class, 'getItemWithCollection']);
 
+});
+
+Route::middleware(['api', 'jwt.auth'])->group(function () {
+    Route::apiResource('categories', CategoryController::class);
 });

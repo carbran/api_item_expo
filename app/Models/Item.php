@@ -39,7 +39,7 @@ class Item extends Model
     }
 
     public function pictures()
-{
-    return $this->hasMany(ItemPicture::class, 'item_id');
-}
+    {
+        return $this->hasMany(ItemPicture::class, 'item_id');
+    }
 }

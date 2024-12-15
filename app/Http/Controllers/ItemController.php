@@ -38,16 +38,16 @@ class ItemController extends Controller
         try {
             DB::beginTransaction();
             $validatedData = $request->validate([
-                'collection_id'    => 'required|exists:collection,id',
-                'title'            => 'required|string|max:255',
-                'subtitle'         => 'nullable|string|max:255',
-                'author'           => 'nullable|string|max:255',
-                'acquisition_date' => 'required|date',
-                'condition'        => 'nullable|integer',
-                'size'             => 'nullable|string|max:255',
-                'size_type'        => 'nullable|integer',
-                'amount'           => 'nullable|integer',
-                'image'            => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+                'collection_id'         => 'required|exists:collection,id',
+                'title'                 => 'required|string|max:255',
+                'subtitle'              => 'nullable|string|max:255',
+                'author'                => 'nullable|string|max:255',
+                'acquisition_date'      => 'required|date',
+                'condition'             => 'nullable|integer',
+                'size'                  => 'nullable|string|max:255',
+                'size_type'             => 'nullable|integer',
+                'amount'                => 'nullable|integer',
+                'pictures.*.image_data' => 'required|string',
             ]);
 
             $item = Item::create([
@@ -62,14 +62,10 @@ class ItemController extends Controller
                 'amount'           => $validatedData['amount'],
             ]);
 
-            if ($request->hasFile('image')) {
-                $imagePath = $request->file('image')->store('images', 'public');
-
-                $imageData = base64_encode(file_get_contents(storage_path('app/public/' . $imagePath)));
-
+            foreach ($request->pictures as $picture) {
                 ItemPicture::create([
-                    'item_id'    => $item->id,
-                    'image_data' => $imageData,
+                    'item_id' => $item->id, // Vincula ao item recém-criado
+                    'image_data' => $picture['image_data'],
                 ]);
             }
 
